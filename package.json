@@ -1,0 +1,43 @@
+{
+  "name": "nodejs-slsea-api",
+  "version": "1.0.0",
+  "description": "NB6007CEM coursework — SLSEA Real-Time Solar Generation Data API (Node.js + Swagger). Separate from HelioLanka .NET stack.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:init": "node src/db/migrate.js",
+    "db:seed": "node src/db/seed.js",
+    "db:reset": "node src/db/migrate.js && node src/db/seed.js"
+  },
+  "keywords": [
+    "slsea",
+    "solar",
+    "rest",
+    "swagger",
+    "nb6007cem"
+  ],
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.3",
+    "express": "^4.22.3",
+    "express-async-errors": "^3.1.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.12.1",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^14.0.2",
+    "yamljs": "^0.3.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
