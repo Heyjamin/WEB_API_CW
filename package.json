@@ -20,7 +20,7 @@
   "license": "UNLICENSED",
   "type": "commonjs",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
