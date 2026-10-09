@@ -1,0 +1,25 @@
+# Isolated from HelioLanka docker-compose at repo root.
+services:
+  slsea-api:
+    build: .
+    image: nodejs-slsea-api:latest
+    container_name: slsea-api
+    ports:
+      - "${SLSEA_PORT:-3080}:3080"
+    environment:
+      NODE_ENV: production
+      PORT: "3080"
+      DATABASE_PATH: /app/data/slsea.sqlite
+      JWT_SECRET: ${JWT_SECRET:-slsea-dev-signing-key-change-in-production-32c}
+    volumes:
+      - slsea-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  slsea-data:
