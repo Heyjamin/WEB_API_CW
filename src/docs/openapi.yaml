@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: SLSEA Real-Time Solar Generation Data API
+  description: |
+    NB6007CEM coursework API for Sri Lanka Sustainable Energy Authority.
+
+    **Richardson Maturity Model: Level 2**
+    - Level 0 avoided: no single-RPC tunnel
+    - Level 1: resource URIs (`/provinces`, `/installations/{meterId}/readings`, …)
+    - Level 2: correct HTTP verbs + status codes + headers (`Location`, `ETag`, `Last-Modified`, `Allow`, `WWW-Authenticate`)
+    - Level 3 (HATEOAS) out of scope per brief — pagination `links` are navigational only
+
+    Write path = metering devices (`X-Device-Api-Key`). Read path = jurisdiction-scoped JWT users.
+    JSON is the only representation (`Accept` / `Content-Type`).
+  version: 1.0.0
+  x-richardson-maturity: 2
+servers:
+  - url: https://sl-aced683b8da34d50806d14bcab9d5a82.ecs.ap-southeast-1.on.aws
+    description: AWS (ECS Express — public HTTPS)
+  - url: http://localhost:3080
+    description: Local development
+tags:
+  - name: Auth
+  - name: Provinces
+  - name: Districts
+  - name: GridSubstations
+  - name: Installations
+  - name: Readings
+paths:
+  /health:
+    get:
+      summary: Liveness
+      responses:
+        '200':
+          description: OK
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: SLSEA user login (JWT)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: national.admin }
+                password: { type: string, example: Admin@12345 }
+      responses:
+        '200':
+          description: Access token issued
+        '401':
+          description: Invalid credentials
+  /api/v1/provinces:
+    get:
+      tags: [Provinces]
+      security: [{ bearerAuth: [] }]
+      summary: List provinces
+      responses:
+        '200': { description: Province collection }
+  /api/v1/provinces/{code}:
+    get:
+      tags: [Provinces]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema: { type: string, example: WP }
+      responses:
+        '200': { description: Province }
+        '304': { description: Not modified }
+        '404': { description: Not found }
+  /api/v1/provinces/{code}/districts:
+    get:
+      tags: [Provinces]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Scoped district collection }
+  /api/v1/districts:
+    get:
+      tags: [Districts]
+      security: [{ bearerAuth: [] }]
+      summary: List districts (jurisdiction filtered)
+      responses:
+        '200': { description: District collection }
+  /api/v1/districts/{code}/generation-summary:
+    get:
+      tags: [Districts]
+      security: [{ bearerAuth: [] }]
+      summary: Stretch — district generation summary (processing resource)
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema: { type: string, example: WP-D01 }
+      responses:
+        '200': { description: Aggregate generation }
+  /api/v1/grid-substations:
+    get:
+      tags: [GridSubstations]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Substation collection }
+  /api/v1/grid-substations/{code}/installations:
+    get:
+      tags: [GridSubstations]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema: { type: string, example: GS-001 }
+      responses:
+        '200': { description: Installations under substation }
+  /api/v1/installations:
+    get:
+      tags: [Installations]
+      security: [{ bearerAuth: [] }]
+      summary: List installations (filter + pagination)
+      parameters:
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: provinceCode
+          schema: { type: string }
+        - in: query
+          name: districtCode
+          schema: { type: string }
+        - in: query
+          name: substationCode
+          schema: { type: string }
+      responses:
+        '200': { description: Paged installations }
+  /api/v1/installations/{meterId}:
+    get:
+      tags: [Installations]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: meterId
+          required: true
+          schema: { type: string, example: MTR-000001 }
+      responses:
+        '200': { description: Installation }
+        '304': { description: Not modified }
+  /api/v1/installations/{meterId}/composite:
+    get:
+      tags: [Installations]
+      security: [{ bearerAuth: [] }]
+      summary: Composite installation + geography + last reading
+      parameters:
+        - in: path
+          name: meterId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Composite resource }
+  /api/v1/installations/{meterId}/last-reading:
+    get:
+      tags: [Readings]
+      security: [{ bearerAuth: [] }]
+      summary: Operational last-known reading (derived)
+      parameters:
+        - in: path
+          name: meterId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Latest reading }
+        '304': { description: Not modified }
+  /api/v1/installations/{meterId}/readings:
+    get:
+      tags: [Readings]
+      security: [{ bearerAuth: [] }]
+      summary: Analytical readings history
+      parameters:
+        - in: path
+          name: meterId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: offset
+          schema: { type: integer }
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: fromUtc
+          schema: { type: string, format: date-time }
+        - in: query
+          name: toUtc
+          schema: { type: string, format: date-time }
+        - in: query
+          name: sort
+          schema: { type: string, enum: [timestampUtc] }
+        - in: query
+          name: order
+          schema: { type: string, enum: [asc, desc] }
+      responses:
+        '200': { description: Paged readings }
+    post:
+      tags: [Readings]
+      summary: Device ingest (write path)
+      parameters:
+        - in: path
+          name: meterId
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Device-Api-Key
+          required: true
+          schema: { type: string, example: slsea-demo-device-key-001 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [instantaneousPowerKw, cumulativeExportKwh]
+              properties:
+                timestampUtc: { type: string, format: date-time }
+                instantaneousPowerKw: { type: number }
+                cumulativeExportKwh: { type: number }
+                voltageV: { type: number, default: 230 }
+      responses:
+        '201':
+          description: Created (append-only)
+          headers:
+            Location:
+              schema: { type: string }
+            Content-Location:
+              schema: { type: string }
+            ETag:
+              schema: { type: string }
+            Last-Modified:
+              schema: { type: string }
+        '400': { description: Malformed body }
+        '401': { description: Device auth failed }
+        '409': { description: Duplicate timestamp }
+        '415': { description: Unsupported Content-Type }
+        '422': { description: Cumulative register went backwards }
+    put:
+      tags: [Readings]
+      summary: Not allowed (append-only)
+      responses:
+        '405':
+          description: Method not allowed
+          headers:
+            Allow:
+              schema: { type: string, example: 'GET, POST' }
+    delete:
+      tags: [Readings]
+      summary: Not allowed (append-only)
+      responses:
+        '405':
+          description: Method not allowed
+          headers:
+            Allow:
+              schema: { type: string, example: 'GET, POST' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    deviceApiKey:
+      type: apiKey
+      in: header
+      name: X-Device-Api-Key
+  responses:
+    NotAcceptable:
+      description: Unsupported Accept (JSON only)
+    Unauthorized:
+      description: Missing/invalid credentials (WWW-Authenticate set)
