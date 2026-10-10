@@ -69,14 +69,6 @@ Tick these in the written report. This repository does not contain the report bo
 | Signed and dated by the author | Student | Sign by hand or with the approved digital method. This file is not a signature |
 | AI use declared in the same submission | Student | Appendix C, and any declaration question that asks about generative AI |
 
-Suggested text, to be signed only by you:
-
-> I confirm that this submission is my own work for NB6007CEM. Where a generative AI tool was used, the tool, the purpose, and the prompts are listed in Appendix C. I have reviewed the API, the specification, and the report, and I can explain the design decisions in the viva.
-
-Name: _______________________________  
-Signature: __________________________  
-Date: _______________________________
-
 ## B.6 AI-disclosure appendix
 
 | Item | State | Evidence |
