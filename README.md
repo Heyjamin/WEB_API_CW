@@ -15,7 +15,7 @@ This folder is a standalone Express REST API with:
 ## Quick start
 
 ```bash
-cd nodejs-slsea-api
+cd WEB_API_CW
 cp .env.example .env   # if needed
 npm install
 npm run db:reset       # migrate + seed
@@ -41,7 +41,7 @@ Details / redeploy: [docs/AWS_DEPLOYMENT.md](./docs/AWS_DEPLOYMENT.md)
 Separate from the HelioLanka image at the repo root. SQLite is seeded on first start and persisted in a volume.
 
 ```bash
-cd nodejs-slsea-api
+cd WEB_API_CW
 docker compose up --build -d
 ```
 
